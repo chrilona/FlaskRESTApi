@@ -98,8 +98,9 @@ class Users(Resource):
         result=UserModel.query.filter_by(id=id).first()
         if not result:
             abort(404,message="User does not exist")
-        db.session.delete(result)
-        db.session.commit()
+        else:
+         db.session.delete(result)
+         db.session.commit()
         return '',  204
         
     #status code helps display user action completed succesfully
