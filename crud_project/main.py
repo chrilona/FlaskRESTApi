@@ -1,4 +1,4 @@
-from flask import Flask 
+from flask import Flask , jsonify
 from flask_restful import Api, Resource,reqparse,abort ,fields,marshal_with
 from flask_sqlalchemy import SQLAlchemy
 
@@ -17,7 +17,7 @@ class UserModel(db.Model):
     
     def __repr__(self) :
         return f"User(name= {self.name},nationality={self.nationality},career={self.career},age={self.age})"
-#with app.app_context():
+ #with app.app_context():
  #db.create_all()
  #done once to create the database and prevent it from overriding by creating another database
 
@@ -42,42 +42,45 @@ resource_fields = {
 }
 
 class Users(Resource):
-    @app.route('/users,method=GET')
+    #@app.route('/users,method=GET')
     @marshal_with(resource_fields)
-    def get(self,id):
-        result=UserModel.query.filter_by(id=id).first()
+    def get_user(self,user_id):
+        result=UserModel.query.filter_by(id=user_id).first()
         if not result:
             abort(404, message="User not found")
+       # return jsonify ({"response":result})
         return result
     
-    @app.route('/list_users,method=GET')
+    #@app.route('/list_users,method=GET')
     @marshal_with(resource_fields)
-    def get_users(self,id):
-        result=UserModel.query.filter_by(id=id).all()
+    def list_users(self, user_id):
+        result=UserModel.query.filter_by(id=user_id).all()
         if result is not None:
+            #return jsonify( {"response":result} ) 
             return result
         else:
             abort(404, message="List of users not found")
         
     
-    @app.route('/add_users/int:<id>, methods=POST')
+    #@app.route('/add_users/int:<id>, methods=POST')
     @marshal_with(resource_fields)
-    def put(self,id):
+    def put_users(self,user_id):
         args=user_properties.parse_args()
-        result=UserModel.query.filter_by(id=id).first()
+        result=UserModel.query.filter_by(id=user_id).first()
         if result:
             abort(409, message="User ID already exists")
         else:
-            user=UserModel(id=args[id],name=args['name'],nationality=args['nationality'],career=args['career'],age=args['age'])
+            user=UserModel(id=user_id,name=args['name'],nationality=args['nationality'],career=args['career'],age=args['age'])
             db.session.add(user)
             db.session.commit()
-        return user, 201 
+        #return jsonify ( {"response":user}, 201 )
+        return result,201
     
-    @app.route('/update_users/int:<id>,methods=PUT')
+    #@app.route('/update_users/int:<id>,methods=PUT')
     @marshal_with(resource_fields) 
-    def patch(self):
+    def patch_users(self,user_id):
         args=user_update_properties.parse_args()
-        result=UserModel.query.filter_by(id=id).first()
+        result=UserModel.query.filter_by(id=user_id).first()
         if not result:
             abort(404,message="User does not exist")
         if  args['name']:
@@ -90,28 +93,30 @@ class Users(Resource):
             result.name=args['age'] 
             
         db.session.commit()
+        return result
         
     
-    @app.route('/delete_users/int:<id>,methods=DELETE')
+    #@app.route('/delete_users/int:<id>,methods=DELETE')
     @marshal_with(resource_fields)
-    def delete(self,id):
+    def delete_users(self,id):
         result=UserModel.query.filter_by(id=id).first()
         if not result:
             abort(404,message="User does not exist")
         else:
          db.session.delete(result)
          db.session.commit()
-        return '',  204
+        #return  jsonify({"response":''}), 204 
+        return '', 204
         
     #status code helps display user action completed succesfully
         
      
-api.add_resource(Users,"/users/<int:id>")
 api.add_resource(Users,"/list_users/<int:id>")
-api.add_resource(Users,"/add_users/<int:id>")
-api.add_resource(Users,"/update_users/<int:id>")
-api.add_resource(Users,"/delete_users/<int:id>")
+#api.add_resource(Users,"/add_users/<int:id>")
+#api.add_resource(Users,"/update_users/<int:id>")
+#api.add_resource(Users,"/delete_users/<int:id>")
+#api.add_resource(Users,"/users/<int:id>")
 
 if __name__=="__main__":
-    app.run(debug=True)
+    app.run(debug=True,port=5000)
     #starts our application and help in development mode to spot errors
